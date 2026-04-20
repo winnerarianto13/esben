@@ -9,6 +9,8 @@ import { useEffect, useState, useMemo } from "react";
 import axiosInstance from "@/lib/axios";
 import VoucherSection, { Voucher } from "@/components/Voucher";
 import { toast } from "sonner";
+import ShippingSection from "@/components/ShippingSection";
+import axios from "axios";
 
 interface Address {
   address_id: string;
@@ -22,8 +24,17 @@ interface Address {
   receiver_name:string;
   postal_code: string;
   phone: string;
+  area_id: string;
 }
 
+interface ShippingService {
+  courier_service_code: string;
+  courier_service_name: string;
+  courier_name: string;
+  price: number;
+  duration: string;
+  description: string;
+}
 export default function CheckoutPage() {
   const { checkoutItems, formatCurrency } = useGlobal();
   const router = useRouter();
@@ -34,6 +45,9 @@ export default function CheckoutPage() {
   const [voucherError, setVoucherError] = useState<string | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isLoadAddress, setIsLoadAddress] = useState(false);
+  const [shippingMethods, setShippingMethods] = useState<ShippingService[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingService | null>(null);
+  const [isLoadingShipping, setIsLoadingShipping] = useState(false);
   // State untuk hasil perhitungan dari Backend
   const [calculation, setCalculation] = useState({
     discount_amount: 0,
@@ -114,6 +128,9 @@ export default function CheckoutPage() {
       const allAddresses = response.data.data; 
       
       const defaultAddress = allAddresses.find((addr: Address) => addr.is_default);
+
+      console.log("defaultAddress", defaultAddress);
+      
       
       if (defaultAddress) {
         setSelectedAddress(defaultAddress);
@@ -151,9 +168,63 @@ export default function CheckoutPage() {
     }
   };
 
+  // const getShippingCost = async () => {
+  //   if (!selectedAddress?.address_id) return;
+  
+  //   try {
+  //     setIsLoadingShipping(true);
+  //     const response = await axiosInstance.post('/shipping/cost', {
+  //       address_id: selectedAddress.address_id,
+  //       area_id: selectedAddress.area_id 
+  //     });
+      
+  //     // Akses data sesuai struktur JSON yang kamu berikan
+  //     const pricingData = response.data?.pricing || [];
+  //     console.log("res", response);
+      
+  //     setShippingMethods(pricingData);
+      
+  //     // Reset pilihan jika alamat berubah
+  //     setSelectedShipping(null); 
+  //   } catch (error: any) {
+  //     console.error("Error fetching shipping cost:", error.response);
+  //     setShippingMethods([]);
+  //   } finally {
+  //     setIsLoadingShipping(false);
+  //   }
+  // };
+
+  const getShippingCost = async () => {
+    if (!selectedAddress?.address_id) return;
+  
+    try {
+      setIsLoadingShipping(true);
+      const response = await axios.get('/data/shipping.json'); 
+      
+      const pricingData = response.data?.data?.pricing || [];
+      setShippingMethods(pricingData);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingShipping(false);
+    }
+  };
+
   useEffect(() => {
     getAddreses();
   }, []);
+
+  useEffect(() => {
+    // Hanya panggil jika selectedAddress benar-benar ada isinya
+    if (selectedAddress) {
+      getShippingCost();
+    }
+  }, [selectedAddress]);
+
+  useEffect(() => {
+    console.log("selectedShipping", selectedShipping);
+    console.log("SelectedVoucher", selectedVoucher);
+  }, [selectedShipping,selectedShipping]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -199,7 +270,7 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                   <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                    {selectedAddress.address_line} {selectedAddress.subdistrict}, {selectedAddress.district}, {selectedAddress.city}, {selectedAddress.province}, {selectedAddress.postal_code}
+                    {selectedAddress.address_line}
                   </p>
                 </div>
               ) : (
@@ -263,6 +334,11 @@ export default function CheckoutPage() {
                 errorMessage={voucherError}
               />
             )}
+            <ShippingSection 
+              data={shippingMethods}
+              isLoading={isLoadingShipping}
+              onSelect={(s) => setSelectedShipping(s)}
+            />
 
             <div className="bg-neutral-50 dark:bg-neutral-900 border dark:border-neutral-800 rounded-3xl p-8 sticky top-24">
               <h2 className="text-xl font-bold mb-6 dark:text-white">Ringkasan</h2>
@@ -273,7 +349,7 @@ export default function CheckoutPage() {
                   <span className="dark:text-white">{formatCurrency(subtotal)}</span>
                 </div>
                 
-                {/* Tampilkan Loading atau Hasil Diskon */}
+                {/* TAMPILKAN DISKON */}
                 {isValidating ? (
                   <div className="flex justify-between text-xs text-neutral-400">
                     <span>Memvalidasi voucher...</span>
@@ -285,11 +361,22 @@ export default function CheckoutPage() {
                     <span>-{formatCurrency(calculation.discount_amount)}</span>
                   </div>
                 )}
+                
+                {/* TAMPILKAN ONGKIR */}
+                <div className="flex justify-between text-sm">
+                  <span className="text-neutral-500">Ongkos Kirim</span>
+                  <span className="dark:text-white">
+                    {selectedShipping ? formatCurrency(selectedShipping.price) : "-"}
+                  </span>
+                </div>
 
+                {/* HITUNG TOTAL AKHIR SECARA REALTIME */}
                 <div className="border-t dark:border-neutral-800 pt-4 flex justify-between items-end">
                   <span className="font-bold dark:text-white">Total Bayar</span>
                   <span className="text-2xl font-black dark:text-white">
-                    {formatCurrency(calculation.total_bill || subtotal)}
+                    {formatCurrency(
+                      Math.max(0, (subtotal - calculation.discount_amount)) + (selectedShipping?.price || 0)
+                    )}
                   </span>
                 </div>
               </div>

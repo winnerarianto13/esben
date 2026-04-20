@@ -23,6 +23,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Esbeg Store | Premium E-Commerce",
   description: "Experience the new standard of shopping",
+  icons: {
+    icon: [
+      {
+        url: '/assets/logo white.png', // Pastikan nama file tidak pakai spasi
+        href: '/assets/logo white.png',
+      },
+    ],
+    apple: [
+      {
+        url: '/assets/logo white.png',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

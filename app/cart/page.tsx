@@ -79,7 +79,7 @@ export default function CartPage() {
                     await axiosInstance.delete(`/cart/items/${item.cart_item_id}`);
                     toast.success("Item dihapus");
                     fetchCartItems();
-                    refreshCart();
+                    refreshCart([], false);
                     // Hapus dari pilihan jika ada
                     setSelectedCartItems(prev => prev.filter(i => i.cart_item_id !== item.cart_item_id));
                 } catch (error) {
@@ -122,7 +122,7 @@ export default function CartPage() {
                     toast.success(`Berhasil menghapus ${selectedCartItems.length} Item`, { position: "top-center" });
                     setSelectedCartItems([]);
                     fetchCartItems();
-                    refreshCart();
+                    refreshCart([], false);
                 } catch (error) {
                     toast.error("Gagal menghapus beberapa item");
                 }

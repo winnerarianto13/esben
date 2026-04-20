@@ -91,7 +91,7 @@ const LoginFormContent = () => {
         </h1>
       </div>
 
-      <div className="w-full max-w-[500px] bg-neutral-50 border dark:bg-neutral-900 p-8 md:p-12 rounded-3xl dark:border-neutral-800 shadow-sm">
+      <div className="w-full max-w-125 bg-neutral-50 border dark:bg-neutral-900 p-8 md:p-12 rounded-3xl dark:border-neutral-800 shadow-sm">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Masuk</h2>
           <p className="text-gray-500 dark:text-neutral-400 text-sm mt-1">Kamu harus login terlebih dahulu nih..</p>
@@ -141,9 +141,9 @@ const LoginFormContent = () => {
         </form>
 
         <div className="relative my-10 flex items-center">
-          <div className="flex-grow border-t border-neutral-200 dark:border-neutral-800"></div>
-          <span className="flex-shrink mx-4 text-[10px] uppercase tracking-widest text-neutral-400 font-bold">Atau</span>
-          <div className="flex-grow border-t border-neutral-200 dark:border-neutral-800"></div>
+          <div className="grow border-t border-neutral-200 dark:border-neutral-800"></div>
+          <span className="shrink mx-4 text-[10px] uppercase tracking-widest text-neutral-400 font-bold">Atau</span>
+          <div className="grow border-t border-neutral-200 dark:border-neutral-800"></div>
         </div>
 
         {/* TOMBOL GOOGLE */}

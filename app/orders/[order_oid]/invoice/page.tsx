@@ -64,6 +64,8 @@
         setIsLoadingOrder(true);
         setError(null);
         const response = await axiosInstance.get(`/orders/${orderOid}`);
+        console.log('response',response);
+        
         
         if (isMounted) {
           setOrderDetail(response.data.data);
@@ -403,12 +405,12 @@
                   orderDetail?.items?.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-sm animate-in fade-in duration-500">
                       <span className="text-neutral-500 dark:text-neutral-400">
-                          <Link href={`/product/${item.variant.product.slug}`}>
-                                  {item.qty}x {item.variant.product.name}
+                          <Link href={`/product/${item?.variant?.product?.slug}`}>
+                                  {item.qty}x {item?.variant?.product?.name}
                           </Link>
-                          <span className="text-[10px] ml-2 opacity-70 uppercase">({item.variant.color} / {item.variant.size})</span>
+                          <span className="text-[10px] ml-2 opacity-70 uppercase">({item?.variant?.color} / {item?.variant?.size})</span>
                       </span>
-                      <span className="font-medium dark:text-white">{formatCurrency(item.variant.price * item.qty)}</span>
+                      <span className="font-medium dark:text-white">{formatCurrency(item?.variant?.price * item?.qty)}</span>
                       </div>
                   ))
                   )}

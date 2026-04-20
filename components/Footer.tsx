@@ -1,5 +1,5 @@
 import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
-
+import Link from "next/link";
 const Footer = () => {
   return (
     <footer className="border-t pt-16 pb-8">
@@ -11,10 +11,7 @@ const Footer = () => {
           <div>
             <h4 className="text-xs font-bold uppercase tracking-widest mb-6">Layanan Pelanggan</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="hover:text-black cursor-pointer transition-colors">Bantuan</li>
-              <li className="hover:text-black cursor-pointer transition-colors">Metode Pembayaran</li>
-              <li className="hover:text-black cursor-pointer transition-colors">Lacak Pesanan</li>
-              <li className="hover:text-black cursor-pointer transition-colors">Gratis Ongkir</li>
+              <li className="hover:text-black cursor-pointer transition-colors"><Link href="#">Bantuan</Link></li>
               <li className="hover:text-black cursor-pointer transition-colors">Pengembalian Barang & Dana</li>
             </ul>
           </div>

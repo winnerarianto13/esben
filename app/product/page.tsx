@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { SearchIcon, ImageIcon, Check, ChevronsUpDown } from "lucide-react";
+import { SearchIcon, ImageIcon, Check, ChevronsUpDown, X } from "lucide-react";
 import axiosInstance from '@/lib/axios';
 import { useGlobal } from '@/context/GlobalContext';
 import { cn } from "@/lib/utils";
+import ProductCard from '@/components/ProductCard';
+import {CartModal} from '@/components/CartModal';
 import {
   InputGroup,
   InputGroupAddon,
@@ -27,6 +29,9 @@ import {
 import { Button } from "@/components/ui/button";
 import Loading from '@/components/Loading';
 import Image from 'next/image';
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ShoppingCart, Eye } from "lucide-react"
 
 // --- Interfaces ---
 interface Category {
@@ -42,27 +47,34 @@ interface Brand {
 interface Product {
   product_id: number;
   name: string;
-  slug: string;
   price: number;
+  tag: string | null;
+  image: string;
+  variants: string[];
   compare_at_price: number;
+  is_home: boolean;
+  primary_image?: {
+    image_url: string;
+  };
+  slug: string;
   brand: {
     name: string;
     category: {
       name: string;
       category_id: number;
-    }
-  };
-  primary_image?: {
-    image_url: string;
-  };
+    };
+  }
+  sold_count: number;
 }
 
-const CatalogPage = () => {
+const ProductPage = () => {
   // --- States ---
-  const [searchTerm, setSearchTerm] = useState("");
+  const { formatCurrency, globalSearch, setGlobalSearch } = useGlobal(); // Ambil search global
+  const [searchTerm, setSearchTerm] = useState(globalSearch || ""); // Sinkronkan awal
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Filter & Sort States
   const [selectedBrand, setSelectedBrand] = useState("Semua");
@@ -75,39 +87,52 @@ const CatalogPage = () => {
   const [openSort, setOpenSort] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
-  const { formatCurrency } = useGlobal();
   const baseUrl = process.env.NEXT_PUBLIC_STORAGE_URL;
 
-  // --- Fetch Data ---
-  const fetchAll = async () => {
+  // --- Fetch Data Logic ---
+  const fetchData = async (query = "") => {
     try {
       setIsLoading(true);
+      
+      // Tentukan endpoint berdasarkan keberadaan kata kunci pencarian
+      const productEndpoint = query.trim() 
+        ? `/product/search?q=${encodeURIComponent(query)}` 
+        : `/product`;
+
       const [productsRes, brandsRes, categoriesRes] = await Promise.all([
-        axiosInstance.get(`/product`),
+        axiosInstance.get(productEndpoint),
         axiosInstance.get(`/brand`),
         axiosInstance.get(`/category`)
       ]);
+    
+      // Jika backend Laravel me-return data dalam array langsung atau dalam .data
+      console.log('productsRes',productsRes.data);
       
-      setProducts(productsRes.data || []);
+      setProducts(productsRes.data.data || productsRes.data || []);
       setBrands(brandsRes.data.data || []);
       setCategories(categoriesRes.data.data || []);
     } catch (error) {
       console.error("Gagal memuat data katalog:", error);
+      setProducts([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Trigger fetchData saat globalSearch (dari Navbar) berubah
   useEffect(() => {
-    fetchAll();
-  }, []);
+    setSearchTerm(globalSearch); // Update search input lokal agar sama dengan Navbar
+    fetchData(globalSearch);
+  }, [globalSearch]);
 
-  // --- Logic Filtering & Sorting ---
+  // --- Logic Filtering & Sorting (Client Side) ---
   const filteredProducts = useMemo(() => {
     if (!products) return [];
 
     return products
       .filter((p) => {
+        // Kita filter lagi secara lokal untuk searchTerm (input di page ini) 
+        // dan filter Brand/Kategori
         const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchBrand = selectedBrand === "Semua" || p.brand.name === selectedBrand;
         const matchCat = selectedCategory === "Semua" || p.brand.category.name === selectedCategory;
@@ -121,7 +146,7 @@ const CatalogPage = () => {
   }, [searchTerm, selectedBrand, selectedCategory, sortOrder, products]);
 
   // --- Reusable Filter Select Component ---
-  const FilterSelect = ({ label, value, onSelect, items, placeholder, openState, setOpenState }: any) => (
+  const FilterSelect = ({ label, value, onSelect, items, openState, setOpenState }: any) => (
     <div className="flex flex-col">
       <label className="text-[10px] uppercase font-bold text-neutral-400 mb-1 tracking-wider ml-1">{label}</label>
       <Popover open={openState} onOpenChange={setOpenState}>
@@ -135,7 +160,7 @@ const CatalogPage = () => {
             <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-50 p-0 shadow-2xl border-neutral-200 dark:border-neutral-800 z-100" align="start">
+        <PopoverContent className="w-50 p-0 shadow-2xl border-neutral-200 dark:border-neutral-800 z-50" align="start">
           <Command>
             <CommandInput placeholder={`Cari ${label}...`} className="h-9" />
             <CommandList>
@@ -144,9 +169,9 @@ const CatalogPage = () => {
                 {items.map((item: any) => (
                   <CommandItem
                     key={item.id}
-                    value={item.name}
+                    value={item.name} 
                     onSelect={() => {
-                      onSelect(item.name)
+                      onSelect(item.name) 
                       setOpenState(false)
                     }}
                     className="cursor-pointer text-xs"
@@ -163,27 +188,73 @@ const CatalogPage = () => {
     </div>
   );
 
+  const [thumbnail, setThumbnail] = useState(null);
+
+  useEffect(() => {
+    const getThumbnail = async () => {
+      try {
+        const response = await axiosInstance.get('/thumbnail');
+        setThumbnail(response.data.data.filter((thumbnail: any) => thumbnail.no_urut === 99)[0]);
+        console.log('thumbnail',response.data.data.filter((thumbnail: any) => thumbnail.no_urut === 99)[0]);
+        
+      } catch (error) {
+        console.error('Error fetching thumbnail:', error);
+      }
+    }
+
+    getThumbnail();
+  }, []);
+
+  const handleClearSearch = () => {
+    setGlobalSearch(""); // Reset context global
+    setSearchTerm("");   // Reset input lokal
+  };
+
   if (isLoading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 transition-colors">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="mb-10">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2">Product.</h1>
-          <hr className="border-neutral-200 dark:border-neutral-800" />
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6 justify-between items-center mb-12 border-b pb-8 border-neutral-100 dark:border-neutral-900">
-          {/* Search Bar */}
+        {thumbnail && (
+          <div className="relative w-full h-20 md:h-50 mb-8 overflow-hidden rounded-2xl">
+            <Image
+              src={`${(thumbnail as any).file_url}`} // Pastikan path image benar
+              alt="Promotion Banner"
+              fill
+              priority
+              className="object-cover"
+            />
+          </div>
+        )}
+        {globalSearch && (
+          <div className="flex items-center gap-2 py-4">
+            <p className="text-sm text-neutral-500">
+              Menampilkan hasil untuk: <span className="font-bold italic text-black dark:text-white">"{globalSearch}"</span>
+            </p>
+            <button onClick={handleClearSearch} className="text-neutral-400 hover:text-red-500 transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        <div className="flex flex-col md:flex-row gap-6 justify-between items-center mb-12 p-4 my-4  shadow-sm rounded-2xl bg-neutral-50 dark:bg-neutral-800 border">
+          {/* Search Bar (Sync with local & global) */}
           <div className="relative w-full md:w-1/3">
-            <InputGroup>
-              <InputGroupInput placeholder="Search..." onChange={(e) => setSearchTerm(e.target.value)} />
-              <InputGroupAddon><SearchIcon /></InputGroupAddon>
+          {!globalSearch && 
+            <InputGroup className='bg-neutral-100'>
+              <InputGroupInput 
+                placeholder="Cari kata kunci.." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                
+              />
+              <InputGroupAddon><SearchIcon size={18} /></InputGroupAddon>
             </InputGroup>
+          }
+
           </div>
 
           {/* Filters Selectors */}
-          <div className="flex flex-wrap gap-8 w-full md:w-auto items-end">
+          <div className="flex flex-nowrap gap-6 w-full md:w-auto items-end overflow-x-auto pb-2">
             <FilterSelect 
               label="Brand"
               value={selectedBrand === "Semua" ? "Semua Brand" : selectedBrand}
@@ -227,60 +298,26 @@ const CatalogPage = () => {
         {/* Product Grid */}
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
-            {filteredProducts.map((p) => (
-              <Link href={`/product/${p.slug}`} key={p.product_id} className="group">
-                <div className="cursor-pointer">
-                  <div className="relative aspect-3/4 overflow-hidden bg-neutral-100 dark:bg-neutral-900 rounded-xl mb-4 flex items-center justify-center">
-                    {p.primary_image?.image_url ? (
-                      <Image 
-                        src={`${baseUrl}${p.primary_image.image_url}`} 
-                        alt={p.name} 
-                        fill // Mengisi kontainer parent (aspect-3/4)
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        // Tambahkan ini agar transisi loading lebih cantik
-                        onLoadingComplete={(img) => img.classList.remove("opacity-0")}
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center text-neutral-400">
-                        <ImageIcon size={32} strokeWidth={1.5} /> 
-                        <span className="text-[10px] font-bold uppercase mt-2">No Image</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-neutral-400 dark:text-neutral-500 tracking-widest uppercase font-bold">
-                      {p.brand.category.name}
-                    </p>
-                    <h3 className="text-sm font-bold tracking-wide uppercase leading-tight line-clamp-2 dark:text-white group-hover:underline">
-                      [{p.brand.name}] {p.name}
-                    </h3>
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      {p.compare_at_price > p.price && (
-                        <>
-                          <p className="text-xs font-medium text-neutral-300 dark:text-neutral-600 line-through">
-                            {formatCurrency(p.compare_at_price)}
-                          </p>
-                          <div className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black rounded-sm">
-                            -{Math.round(((p.compare_at_price - p.price) / p.compare_at_price) * 100)}%
-                          </div>
-                        </>
-                      )}
-                      <p className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-                        {formatCurrency(p.price)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+              {filteredProducts.map((p, index) => (
+                <ProductCard
+                  key={p.product_id}
+                  product={p}
+                  formatCurrency={formatCurrency}
+                  onQuickAdd={setSelectedProduct} // Kirim fungsi setter ke props
+                />
+              ))}
           </div>
         ) : (
           <div className="py-24 text-center">
             <p className="text-neutral-400 text-lg">Produk tidak ditemukan.</p>
             <button 
-              onClick={() => {setSearchTerm(""); setSelectedBrand("Semua"); setSelectedCategory("Semua"); setSortOrder("default");}}
+              onClick={() => {
+                handleClearSearch();
+                setSelectedBrand("Semua"); 
+                setSelectedCategory("Semua"); 
+                setSortOrder("default");
+                fetchData(); // Ambil ulang semua produk
+              }}
               className="mt-4 text-sm font-bold underline uppercase tracking-widest hover:text-red-600 transition-colors"
             >
               Reset Filter
@@ -288,8 +325,13 @@ const CatalogPage = () => {
           </div>
         )}
       </div>
+      <CartModal 
+        product={selectedProduct as any} 
+        isOpen={!!selectedProduct} 
+        onClose={() => setSelectedProduct(null)} 
+      />
     </div>
   );
 };
 
-export default CatalogPage;
+export default ProductPage;

@@ -51,6 +51,19 @@ export const AuthProvider = ({ children }) => {
     handleAuthSuccess(res.data.token, res.data.user, callbackUrl);
   };
 
+  //register
+  const register = async (credentials) => {
+    const res = await axiosInstance.post('/register', credentials);
+    // HAPUS handleAuthSuccess dari sini agar tidak redirect otomatis
+    return res.data; // Kembalikan data agar bisa dibaca di component
+  };
+
+  const verifyOtp = async (email, otp, callbackUrl) => {
+    const res = await axiosInstance.post('/auth/verify-otp', { email, otp });
+    handleAuthSuccess(res.data.token, res.data.user, callbackUrl);
+    return res.data;
+  };
+
   const updateUser = (updatedUser) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -65,9 +78,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, updateUser }}>
-      {children}
-    </AuthContext.Provider>
+  <AuthContext.Provider value={{ user, register, login, logout, loading, updateUser, verifyOtp }}>
+    {children}
+  </AuthContext.Provider>
   );
 };
 

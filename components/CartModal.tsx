@@ -116,7 +116,7 @@ export function CartModal({ product, isOpen, onClose }: ProductModalProps) {
           // Panggil API di sini
           const res = await axiosInstance.post("/cart/items", data);
           // tutup modal
-          refreshCart();
+          refreshCart([product.product_id], true);
           onClose();
           toast.success("Berhasil Masuk Keranjang", { position: "top-center",className: "mt-15" });
         }

@@ -7,7 +7,7 @@ interface CartState {
   lastAddedTimestamp: number | null;
   justAddedIds: number[]; // Menyimpan ID item yang baru saja ditambahkan
   fetchCartLength: () => Promise<void>;
-  refreshCart: (newIds?: number[]) => Promise<void>; // Menerima array ID baru opsional
+  refreshCart: (newIds?: number[], shouldAnimate?: boolean) => Promise<void>; // Menerima array ID baru opsional
   clearJustAdded: () => void; // Reset ID setelah dipakai di halaman Cart
 }
 
@@ -34,21 +34,18 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  // DIGUNAKAN SETELAH BERHASIL "POST" KE CART (MEMICU ANIMASI & DATA BARU)
-  refreshCart: async (newIds = []) => {
+  refreshCart: async (newIds = [], shouldAnimate = true) => { // Default true agar pemanggilan standar tetap ada animasi
     const token = Cookies.get('token');
     if (!token) return;
-
+  
     try {
       const res = await axiosInstance.get('/cart');
       const newLength = res.data.items.length;
-      const oldLength = get().cartLength;
-
+  
       set({ 
         cartLength: newLength,
-        // Update timestamp pemicu animasi HANYA jika barang bertambah
-        lastAddedTimestamp: newLength > oldLength ? Date.now() : get().lastAddedTimestamp,
-        // Simpan ID baru agar bisa diceklis otomatis di halaman Cart
+        // Jika shouldAnimate false, kita jangan update timestamp pemicu animasi
+        lastAddedTimestamp: shouldAnimate ? Date.now() : get().lastAddedTimestamp,
         justAddedIds: newIds 
       });
     } catch (err) {

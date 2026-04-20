@@ -227,7 +227,6 @@ export default function ProductDetailPage() {
                         {displayImages.map((src, index) => (
                             <CarouselItem key={index}>
                                 <div className="aspect-3/4 rounded-3xl overflow-hidden bg-muted">
-                                    {/* GANTI DI SINI */}
                                     <ZoomImage src={src} alt={product.name} />
                                 </div>
                             </CarouselItem>
@@ -430,7 +429,7 @@ export default function ProductDetailPage() {
                             <Plus className="h-4 w-4" />
                         </Button>
                     </div>
-                    <p className="text-sm  font-bold uppercase">Stock tersedia: {product.variants.find((v) => v.color === selectedVariant && v.size === selectedSize)?.stock || '-'}</p>
+                    <p className="text-sm  font-bold uppercase">Stok tersedia: {product.variants.find((v) => v.color === selectedVariant && v.size === selectedSize)?.stock || '-'}</p>
 
                     <Button 
                         disabled={!selectedVariant || !selectedSize || isSendToCart}

@@ -23,12 +23,11 @@ const OurStoryPage = () => {
           className="max-w-4xl"
         >
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter uppercase mb-6">
-            Elegansi <br />
-            <span className="text-neutral-400 font-light italic">Dalam Kurasi.</span>
+            ABOUT <br />
+            <span className="text-neutral-400 font-light italic">US.</span>
           </h1>
           <p className="text-lg md:text-xl text-neutral-500 max-w-2xl leading-relaxed">
-            ESBEG bukan sekadar toko. Kami adalah perantara antara seni pembuatan produk 
-            dan apresiasi Anda terhadap kualitas yang tak lekang oleh waktu.
+            ESBEG menyediakan produk pakaian dengan kualitas terbaik, menggunakan bahan-bahan berkualitas tinggi, nyaman untuk dipakai, dan desain yang modern.
           </p>
         </motion.div>
       </section>
@@ -40,11 +39,11 @@ const OurStoryPage = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1 }}
-            className="aspect-[4/5] bg-neutral-200 dark:bg-neutral-800 rounded-3xl overflow-hidden relative group"
+            className="aspect-4/5 bg-neutral-200 dark:bg-neutral-800 rounded-3xl overflow-hidden relative group"
           >
             {/* Ganti src dengan gambar editorial brand kamu */}
             <img 
-              src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=2080&auto=format&fit=crop" 
+              src="/assets/c1.png" 
               alt="Editorial" 
               className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
             />
@@ -53,18 +52,22 @@ const OurStoryPage = () => {
 
           <div className="space-y-12">
             <div>
+              <img src="/assets/logo hitam.png" alt=""  className="w-100"/>
+            </div>
+            <div>
               <span className="text-[10px] font-bold tracking-[0.3em] text-neutral-400 uppercase">Sejarah Kami</span>
-              <h2 className="text-3xl font-bold mt-4 mb-6 tracking-tight">Dimulai dari sebuah obsesi terhadap detail.</h2>
+              <h2 className="text-3xl font-bold mt-4 mb-6 tracking-tight">ESBEG</h2>
               <p className="text-neutral-500 leading-relaxed">
-                Berdiri pada tahun 2024, ESBEG lahir dari kegelisahan akan sulitnya menemukan 
-                brand lokal maupun internasional yang memiliki standar kualitas "Old Money" namun tetap relevan 
-                dengan gaya hidup modern. Kami berkeliling, bertemu pengrajin, dan menguji setiap inci bahan.
+                Lahir pada tahun 2024, dengan komitmen yang kuat dalam menciptakan produk terbaik, ESBEG hadir untuk menjawab kegelisahan pasar untuk menemukan pakaian yang berkualitas
+                dari segi kualitas bahan, kenyamanan, dan look yang modern. <br/><br />
+                Tanpa ada keraguan ESBEG siap memberikan kepuasan dan pelayanan terbaik bagi konsumennya.
+                Kami ingin menciptakan kebanggan tersendiri ketika konsumen memakai produk kami.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-8">
               <div>
-                <h3 className="text-4xl font-black mb-2">15+</h3>
+                <h3 className="text-4xl font-black mb-2">5+</h3>
                 <p className="text-xs text-neutral-400 uppercase tracking-widest font-bold">Brand Partners</p>
               </div>
               <div>

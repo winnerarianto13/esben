@@ -6,6 +6,8 @@ const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
   // 1. Tambahkan state untuk menyimpan item yang akan di-checkout
   const [checkoutItems, setCheckoutItems] = useState([]);
+  const [globalSearch, setGlobalSearch] = useState("");
+  
 
   // 2. Logic untuk menyimpan ke sessionStorage agar data tidak hilang saat refresh
   const updateCheckoutItems = (items) => {
@@ -75,6 +77,7 @@ export const GlobalProvider = ({ children }) => {
       confirmDialog, 
       closeConfirm,
       setCheckoutItems: updateCheckoutItems // Kirim fungsi update-nya
+      , globalSearch, setGlobalSearch
     }}>
       {children}
     </GlobalContext.Provider>
