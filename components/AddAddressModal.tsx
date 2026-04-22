@@ -110,7 +110,6 @@ export function AddAddressModal({ onSuccess }: AddAddressModalProps) {
         params: { input }
       });
       const data = res.data.data;
-      console.log('street', data);
       
       setStreetResults(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -126,7 +125,6 @@ export function AddAddressModal({ onSuccess }: AddAddressModalProps) {
     try {
       // Pastikan areaInfo selalu berbentuk array
       const data = Array.isArray(areaInfo) ? areaInfo : [areaInfo];
-      console.log('area',data);
       
       setAreaResults(data.filter(Boolean));
       setOpenAreaSearch(true);
@@ -190,11 +188,7 @@ export function AddAddressModal({ onSuccess }: AddAddressModalProps) {
         area_id: formData.area_id
       }  
       
-
       const res = await axiosInstance.post('/addresses', finalData);
-      console.log('res',res);
-      
-      
       setOpen(false);
       setFormData({
         title: "", address: "", province: "", city: "", 
@@ -213,11 +207,6 @@ export function AddAddressModal({ onSuccess }: AddAddressModalProps) {
       toast.error("Terjadi kesalahan saat menyimpan alamat.");
     }
   }
-
-  useEffect(() => {
-    console.log('perubahan formData', formData);
-    
-  }, [formData]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

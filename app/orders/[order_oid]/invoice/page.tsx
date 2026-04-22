@@ -64,8 +64,6 @@
         setIsLoadingOrder(true);
         setError(null);
         const response = await axiosInstance.get(`/orders/${orderOid}`);
-        console.log('response',response);
-        
         
         if (isMounted) {
           setOrderDetail(response.data.data);

@@ -1,17 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import axiosInstance from "@/lib/axios";
+import Loading from "@/components/Loading";
 
 const OurStoryPage = () => {
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.8 }
-  };
+  };  
 
+  const [data, setData] = useState(null);
+
+  useEffect (() => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get('/about');
+        setData(response.data.config);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        return null;
+      }
+    }
+    fetchData();
+  },[]);
+
+  if (!data) {
+    return <Loading />;
+  }
+  
   return (
     <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen font-sans">
       {/* Hero Section */}
@@ -23,11 +44,10 @@ const OurStoryPage = () => {
           className="max-w-4xl"
         >
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter uppercase mb-6">
-            ABOUT <br />
-            <span className="text-neutral-400 font-light italic">US.</span>
+            {data.about_hero_title} <br />
           </h1>
           <p className="text-lg md:text-xl text-neutral-500 max-w-2xl leading-relaxed">
-            ESBEG menyediakan produk pakaian dengan kualitas terbaik, menggunakan bahan-bahan berkualitas tinggi, nyaman untuk dipakai, dan desain yang modern.
+            {data.about_hero_description}
           </p>
         </motion.div>
       </section>
@@ -43,8 +63,8 @@ const OurStoryPage = () => {
           >
             {/* Ganti src dengan gambar editorial brand kamu */}
             <img 
-              src="/assets/c1.png" 
-              alt="Editorial" 
+              src={data.about_history_image} 
+              alt="About Esbeg" 
               className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
             />
             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
@@ -55,24 +75,21 @@ const OurStoryPage = () => {
               <img src="/assets/logo hitam.png" alt=""  className="w-100"/>
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-[0.3em] text-neutral-400 uppercase">Sejarah Kami</span>
-              <h2 className="text-3xl font-bold mt-4 mb-6 tracking-tight">ESBEG</h2>
-              <p className="text-neutral-500 leading-relaxed">
-                Lahir pada tahun 2024, dengan komitmen yang kuat dalam menciptakan produk terbaik, ESBEG hadir untuk menjawab kegelisahan pasar untuk menemukan pakaian yang berkualitas
-                dari segi kualitas bahan, kenyamanan, dan look yang modern. <br/><br />
-                Tanpa ada keraguan ESBEG siap memberikan kepuasan dan pelayanan terbaik bagi konsumennya.
-                Kami ingin menciptakan kebanggan tersendiri ketika konsumen memakai produk kami.
+              <span className="text-[10px] font-bold tracking-[0.3em] text-neutral-400 uppercase">{data.about_history_subtitle}</span>
+              <h2 className="text-3xl font-bold mt-4 mb-6 tracking-tight">{data.about_history_title}</h2>
+              <p className="text-neutral-500 leading-relaxed whitespace-pre-line">
+                {data.about_history_content}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-8">
               <div>
-                <h3 className="text-4xl font-black mb-2">5+</h3>
-                <p className="text-xs text-neutral-400 uppercase tracking-widest font-bold">Brand Partners</p>
+                <h3 className="text-4xl font-black mb-2">{data.about_stats_1_value}</h3>
+                <p className="text-xs text-neutral-400 uppercase tracking-widest font-bold">{data.about_stats_1_label}</p>
               </div>
               <div>
-                <h3 className="text-4xl font-black mb-2">100%</h3>
-                <p className="text-xs text-neutral-400 uppercase tracking-widest font-bold">Quality Control</p>
+                <h3 className="text-4xl font-black mb-2">{data.about_stats_2_value}</h3>
+                <p className="text-xs text-neutral-400 uppercase tracking-widest font-bold">{data.about_stats_2_label}</p>
               </div>
             </div>
           </div>
@@ -82,14 +99,14 @@ const OurStoryPage = () => {
       {/* Core Values - Horizontal Cards */}
       <section className="py-32 container mx-auto px-6">
         <div className="text-center mb-20">
-          <h2 className="text-3xl font-bold tracking-tighter uppercase">Nilai Utama Kami</h2>
+          <h2 className="text-3xl font-bold tracking-tighter uppercase">{data.about_values_title}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {[
-            { title: "Authenticity", desc: "Setiap produk dijamin keasliannya langsung dari produsen." },
-            { title: "Quality Over Quantity", desc: "Kami lebih memilih 1 produk sempurna daripada 100 produk biasa." },
-            { title: "Customer Centric", desc: "Pengalaman berbelanja Anda adalah prioritas tertinggi kami." }
+            { title: data.about_value_1_title, desc: data.about_value_1_description },
+            { title: data.about_value_2_title, desc: data.about_value_2_description },
+            { title: data.about_value_3_title, desc: data.about_value_3_description },
           ].map((item, idx) => (
             <motion.div 
               key={idx}

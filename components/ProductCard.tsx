@@ -18,6 +18,7 @@ interface Product {
     };
     slug: string;
     brand: {
+      brand_id: number;
       name: string;
       category: {
         name: string;

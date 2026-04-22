@@ -80,10 +80,10 @@ export function AddAddressModal({ onSuccess }: AddAddressModalProps) {
               input: 'coblong'
             }
           });
-          if (res.status === 200) {
-            console.log("SA",res.data);
+          // if (res.status === 200) {
+          //   console.log("SA",res.data);
             
-          }
+          // }
         } catch (error :any) {
           console.error("Fetch Error:", error.response);
         }

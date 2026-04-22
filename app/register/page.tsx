@@ -80,9 +80,6 @@ const RegisterFormContent = () => {
         phone: fullPhone,
         password: password
        });
-       
-      console.log('Sukses mendaftar');
-      console.log(res);
       
       setSuccess(res.message);
        
@@ -90,8 +87,6 @@ const RegisterFormContent = () => {
       setStep('otp');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Gagal mendaftar. Silakan cek data kembali.');
-      console.log(err.response);
-      
     } finally {
       setIsSubmitting(false);
     }
@@ -122,21 +117,17 @@ const RegisterFormContent = () => {
     e.preventDefault();
     const otpString = otp.join('');
     if (otpString.length < 6) return setError('Masukkan kode lengkap');
-    console.log(otpString);
     setError('');
     setIsSubmitting(true);
     try {
       // Kirim OTP ke backend untuk verifikasi akhir
       const res = await axiosInstance.post('/verify-otp ', { email: email,otp_code: otpString });
-      console.log("res dari vrify",res);
       
       // Jika valid, panggil fungsi login dari context untuk menyimpan session
       await login({ type: 'social', data: res.data }, callbackUrl);
       router.push(callbackUrl);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Kode OTP salah atau kedaluwarsa.');
-      console.log(err.response);
-      
     } finally {
       setIsSubmitting(false);
     }

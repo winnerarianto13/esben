@@ -11,6 +11,7 @@ export interface ShippingService {
   price: number;                // Ambil dari API
   duration: string;             // Ambil dari API (e.g., "1 - 2 days")
   description: string;
+  company: string;
 }
 
 interface ShippingSectionProps {

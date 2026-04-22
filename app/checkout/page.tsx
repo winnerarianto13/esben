@@ -34,6 +34,7 @@ interface ShippingService {
   price: number;
   duration: string;
   description: string;
+  company : string;
 }
 export default function CheckoutPage() {
   const { checkoutItems, formatCurrency } = useGlobal();
@@ -128,9 +129,6 @@ export default function CheckoutPage() {
       const allAddresses = response.data.data; 
       
       const defaultAddress = allAddresses.find((addr: Address) => addr.is_default);
-
-      console.log("defaultAddress", defaultAddress);
-      
       
       if (defaultAddress) {
         setSelectedAddress(defaultAddress);
@@ -154,6 +152,9 @@ export default function CheckoutPage() {
           cart_item_ids: checkoutItemsIds,
           address_id: selectedAddress?.address_id,
           voucher_code: selectedVoucher?.code,
+          courier_company : selectedShipping?.company,
+          courier_service : selectedShipping?.courier_service_code,
+          shipping_cost : selectedShipping?.price
         }
       );
 
@@ -168,47 +169,46 @@ export default function CheckoutPage() {
     }
   };
 
-  // const getShippingCost = async () => {
-  //   if (!selectedAddress?.address_id) return;
-  
-  //   try {
-  //     setIsLoadingShipping(true);
-  //     const response = await axiosInstance.post('/shipping/cost', {
-  //       address_id: selectedAddress.address_id,
-  //       area_id: selectedAddress.area_id 
-  //     });
-      
-  //     // Akses data sesuai struktur JSON yang kamu berikan
-  //     const pricingData = response.data?.pricing || [];
-  //     console.log("res", response);
-      
-  //     setShippingMethods(pricingData);
-      
-  //     // Reset pilihan jika alamat berubah
-  //     setSelectedShipping(null); 
-  //   } catch (error: any) {
-  //     console.error("Error fetching shipping cost:", error.response);
-  //     setShippingMethods([]);
-  //   } finally {
-  //     setIsLoadingShipping(false);
-  //   }
-  // };
-
   const getShippingCost = async () => {
     if (!selectedAddress?.address_id) return;
   
     try {
       setIsLoadingShipping(true);
-      const response = await axios.get('/data/shipping.json'); 
+      const response = await axiosInstance.post('/shipping/cost', {
+        address_id: selectedAddress.address_id,
+        area_id: selectedAddress.area_id 
+      });
       
-      const pricingData = response.data?.data?.pricing || [];
+      // Akses data sesuai struktur JSON yang kamu berikan
+      const pricingData = response.data?.pricing || [];
+      
       setShippingMethods(pricingData);
-    } catch (error) {
-      console.error(error);
+      
+      // Reset pilihan jika alamat berubah
+      setSelectedShipping(null); 
+    } catch (error: any) {
+      console.error("Error fetching shipping cost:", error.response);
+      setShippingMethods([]);
     } finally {
       setIsLoadingShipping(false);
     }
   };
+
+  // const getShippingCost = async () => {
+  //   if (!selectedAddress?.address_id) return;
+  
+  //   try {
+  //     setIsLoadingShipping(true);
+  //     const response = await axios.get('/data/shipping.json'); 
+      
+  //     const pricingData = response.data?.data?.pricing || [];
+  //     setShippingMethods(pricingData);
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setIsLoadingShipping(false);
+  //   }
+  // };
 
   useEffect(() => {
     getAddreses();
@@ -220,11 +220,6 @@ export default function CheckoutPage() {
       getShippingCost();
     }
   }, [selectedAddress]);
-
-  useEffect(() => {
-    console.log("selectedShipping", selectedShipping);
-    console.log("SelectedVoucher", selectedVoucher);
-  }, [selectedShipping,selectedShipping]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
